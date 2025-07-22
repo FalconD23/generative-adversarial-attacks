@@ -49,6 +49,10 @@ class FGSMAttack(BaseIterativeAttack, BatchIterativeAttack):
         X_adv = X.data + self.eps * grad_sign
         return X_adv
 
+    def update_data_batch_size(self, data_size, batch_size):
+        self.data_size = data_size
+        self.batch_size = batch_size
+
     def step(self, X: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
         loss = self.get_loss(X, y_true)
         X_adv = self.get_adv_data(X, loss)
