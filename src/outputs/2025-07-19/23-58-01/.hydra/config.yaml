@@ -1,0 +1,110 @@
+model:
+  name: ResidualCNN
+  params:
+    c_in: 1
+    c_out: 1
+    coord: false
+    separable: false
+    zero_norm: false
+  hyperparameters_vary:
+    c_in:
+      optuna_type: const
+      value: 1
+    c_out:
+      optuna_type: const
+      value: 1
+  attack_train_mode: false
+dataset:
+  name: PowerCons
+  num_classes: 2
+  seq_len: 144
+  total_object_count: 360
+  train:
+    object_count: 180
+    max: 6.150072421276428
+    mean: -1.7736155479814228e-16
+    min: -0.9882441283924925
+    std: 0.9999999999999999
+    median: -0.4639090210070178
+    roughness: 0.15408237025050991
+  test:
+    object_count: 180
+    max: 6.002890636747172
+    mean: -0.010892417367795152
+    min: -1.0250395745248067
+    std: 0.9910649059168454
+    median: -0.4823067440731748
+    roughness: 0.1544105925399531
+slice: false
+save_path: checkpoints/${dataset.name}/${model.name}/${exp_name}/
+test_run: false
+exp_name: test
+log_clearml: false
+clearml_project: AA_train_classifiers
+author: ''
+model_id: 100
+batch_size: 64
+device: cuda:0
+print_every: 1
+train_self_supervised: true
+transform_data: []
+training_params:
+  model_name: ${model.name}
+  model_params: ${model.params}
+  criterion_name: BCELoss
+  criterion_params: None
+  optimizer_name: Adam
+  optimizer_params:
+    lr: 0.0001
+  scheduler_name: StepLR
+  scheduler_params:
+    step_size: 30
+    gamma: 0.8
+  n_epochs: 10
+  early_stop_patience: 50
+enable_optimization: false
+optuna_optimizer:
+  n_trials: 5
+  sampler:
+    _target_: optuna.samplers.TPESampler
+    seed: 0
+  pruner:
+    _target_: optuna.pruners.MedianPruner
+  optim_metric: f1
+  hyperparameters_vary:
+    model_name:
+      optuna_type: const
+      value: ${model.name}
+    model_params: ${model.hyperparameters_vary}
+    criterion_name:
+      optuna_type: const
+      value: BCELoss
+    criterion_params:
+      optuna_type: const
+      value: None
+    optimizer_name:
+      optuna_type: choice
+      choices:
+      - Adam
+      - AdamW
+    optimizer_params:
+      lr:
+        optuna_type: float
+        low: 0.0001
+        high: 0.01
+        log: true
+    scheduler_name:
+      optuna_type: const
+      value: StepLR
+    scheduler_params:
+      optuna_type: const
+      value:
+        step_size: 10
+        gamma: 0.5
+    n_epochs:
+      optuna_type: int
+      low: 5
+      high: 15
+    early_stop_patience:
+      optuna_type: const
+      value: None

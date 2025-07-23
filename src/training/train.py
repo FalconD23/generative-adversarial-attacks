@@ -536,6 +536,7 @@ class DiscTrainer(Trainer):
 
         test_data_size = valid_loader.dataset.X.shape
         test_batch_size = valid_loader.batch_size
+        # print()
         self.test_attack.update_data_batch_size(test_data_size, test_batch_size)
 
         adv_train_loader = self._generate_adversarial_data(train_loader, transform, train=True)

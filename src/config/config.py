@@ -109,6 +109,8 @@ def get_disc_list(
             model_folder_name = model_conf
         disc_path = f"{path}/{model_folder_name}/{weight_name}.pt"
         folder_path = 'loaded_clearml/disc_weights'
+        print(f'{type(folder_path)}, {folder_path}')
+        print(type(weight_name), weight_name)
         file_path = os.path.join(folder_path, weight_name)
         if from_clearml and os.path.exists(file_path):
             loaded_path = file_path
