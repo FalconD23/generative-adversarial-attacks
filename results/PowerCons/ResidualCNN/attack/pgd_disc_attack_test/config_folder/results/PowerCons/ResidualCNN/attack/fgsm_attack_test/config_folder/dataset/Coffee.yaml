@@ -1,0 +1,20 @@
+name: Coffee
+num_classes: 2
+seq_len: 286
+total_object_count: 56
+train:
+  object_count: 28
+  max: 2.1771109
+  mean: 6.527847681872509e-11
+  min: -2.064161
+  std: 0.9982502173798652
+  median: 0.25824298
+  roughness: 0.03800708432496227
+test:
+  object_count: 28
+  max: 2.1042053
+  mean: 1.1818555990671244e-10
+  min: -2.1153213
+  std: 0.998250217175357
+  median: 0.278603365
+  roughness: 0.03806894967826711

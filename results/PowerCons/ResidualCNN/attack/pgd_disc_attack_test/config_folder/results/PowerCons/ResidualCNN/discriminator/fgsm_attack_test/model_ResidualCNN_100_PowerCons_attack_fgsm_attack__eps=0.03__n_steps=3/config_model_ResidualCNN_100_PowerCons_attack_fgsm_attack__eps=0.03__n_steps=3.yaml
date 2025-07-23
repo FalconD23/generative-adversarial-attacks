@@ -1,0 +1,231 @@
+attack:
+  attack_params:
+    eps: 0.03
+    n_steps: 3
+  hyperparameters_vary:
+    eps:
+      high: 0.5
+      log: true
+      low: 0.01
+      optuna_type: float
+    n_steps:
+      optuna_type: const
+      value: 5
+  name: FGSMAttack
+  named_params:
+  - eps
+  - n_steps
+  short_name: fgsm_attack
+attack_model:
+  attack_train_mode: false
+  hyperparameters_vary:
+    c_in:
+      optuna_type: const
+      value: 1
+    c_out:
+      optuna_type: const
+      value: 1
+  name: ResidualCNN
+  params:
+    c_in: 1
+    c_out: 1
+    coord: false
+    separable: false
+    zero_norm: false
+author: ''
+batch_size: 64
+clearml_project: AA_train_discriminator
+criterion_name: BCELoss
+criterion_params: null
+dataset:
+  name: PowerCons
+  num_classes: 2
+  seq_len: 144
+  test:
+    max: 6.002890636747172
+    mean: -0.010892417367795152
+    median: -0.4823067440731748
+    min: -1.0250395745248067
+    object_count: 180
+    roughness: 0.1544105925399531
+    std: 0.9910649059168454
+  total_object_count: 360
+  train:
+    max: 6.150072421276428
+    mean: -1.7736155479814228e-16
+    median: -0.4639090210070178
+    min: -0.9882441283924925
+    object_count: 180
+    roughness: 0.15408237025050991
+    std: 0.9999999999999999
+delete_weights_disc: false
+device: cuda:0
+disc_model_check:
+  attack_train_mode: false
+  hyperparameters_vary:
+    c_in:
+      optuna_type: const
+      value: 1
+    c_out:
+      optuna_type: const
+      value: 1
+  name: ResidualCNN
+  params:
+    c_in: 1
+    c_out: 1
+    coord: false
+    separable: false
+    zero_norm: false
+disc_model_reg:
+  attack_train_mode: false
+  hyperparameters_vary:
+    c_in:
+      optuna_type: const
+      value: 1
+    c_out:
+      optuna_type: const
+      value: 1
+  name: ResidualCNN
+  params:
+    c_in: 1
+    c_out: 1
+    coord: false
+    separable: false
+    zero_norm: false
+disc_path: results/PowerCons/ResidualCNN/discriminator/fgsm_attack
+enable_optimization: false
+estimator_batch_size: null
+exp_model_name: test
+exp_name: _test
+list_check_model_params: null
+load_weights_classifier: false
+load_weights_disc: false
+log_clearml: false
+metric_effect: F1
+metric_hid: ROC_AUC_DISC
+model:
+  attack_train_mode: false
+  hyperparameters_vary:
+    c_in:
+      optuna_type: const
+      value: 1
+    c_out:
+      optuna_type: const
+      value: 1
+  name: ResidualCNN
+  params:
+    c_in: 1
+    c_out: 1
+    coord: false
+    separable: false
+    zero_norm: false
+model_folder: checkpoints/PowerCons/ResidualCNN/test
+model_id: 100
+model_id_attack: 100
+optuna_optimizer:
+  hyperparameters_vary:
+    attack_name:
+      optuna_type: const
+      value: FGSMAttack
+    attack_params:
+      eps:
+        high: 0.5
+        log: true
+        low: 0.01
+        optuna_type: float
+      n_steps:
+        optuna_type: const
+        value: 5
+    attack_scheduler_name:
+      optuna_type: const
+      value: StepAttackScheduler
+    attack_scheduler_params:
+      optuna_type: const
+      value:
+        attack_gamma: 0.8
+        attack_step_size: 10
+    criterion_name:
+      optuna_type: const
+      value: BCELoss
+    criterion_params:
+      optuna_type: const
+      value: None
+    early_stop_patience:
+      optuna_type: const
+      value: None
+    model_name:
+      optuna_type: const
+      value: ResidualCNN
+    model_params:
+      c_in:
+        optuna_type: const
+        value: 1
+      c_out:
+        optuna_type: const
+        value: 1
+    n_epochs:
+      optuna_type: const
+      value: 3
+    optimizer_name:
+      choices:
+      - Adam
+      - AdamW
+      optuna_type: choice
+    optimizer_params:
+      lr:
+        high: 0.01
+        log: true
+        low: 0.0001
+        optuna_type: float
+    scheduler_name:
+      optuna_type: const
+      value: StepLR
+    scheduler_params:
+      optuna_type: const
+      value:
+        gamma: 0.5
+        step_size: 10
+  n_trials: 3
+  optim_metric: f1
+  pruner:
+    _target_: optuna.pruners.MedianPruner
+  sampler:
+    _target_: optuna.samplers.TPESampler
+    seed: 0
+print_every: 1
+project_weights: AA_train_classifier_GOLDEN
+project_weights_disc: AA_train_discriminator_GOLDEN
+save_path: results/PowerCons/ResidualCNN/discriminator/fgsm_attack_test
+save_timestamp: 2025:07:22 01:03:50
+slice: false
+test_run: false
+train_self_supervised: true
+training_params:
+  attack_scheduler_name: StepAttackScheduler
+  attack_scheduler_params:
+    attack_gamma: 0.8
+    attack_step_size: 10
+    param_name: eps
+  criterion_name: BCELoss
+  criterion_params: null
+  early_stop_patience: 900
+  model_name: ResidualCNN
+  model_params:
+    c_in: 1
+    c_out: 1
+    coord: false
+    separable: false
+    zero_norm: false
+  n_epochs: 30
+  optimizer_name: Adam
+  optimizer_params:
+    lr: 0.0001
+  print_every: 1
+  scheduler_name: StepLR
+  scheduler_params:
+    gamma: 0.9
+    step_size: 50
+transform_data:
+- _target_: tsai.data.transforms.TSRandomResizedCrop
+  magnitude: 0.1
+use_disc_check: false

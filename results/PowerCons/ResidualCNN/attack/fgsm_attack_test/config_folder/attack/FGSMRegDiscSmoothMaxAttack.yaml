@@ -1,0 +1,26 @@
+name: FGSMRegDiscSmoothMaxAttack
+short_name: fgsm_disc_smax_attack
+named_params: [eps, n_steps, beta]
+
+attack_params:
+  eps: 0.03
+  n_steps: 50
+  beta: 20.025957
+  use_sigmoid: False
+  model: LSTM
+  criterion: BCELoss
+
+list_reg_model_params:
+  - model_ResidualCNN_100_PowerCons_attack_fgsm_attack__eps=0.03__n_steps=10
+
+hyperparameters_vary:
+  eps:
+    optuna_type: const
+    value: 0.03
+  n_steps:
+    optuna_type: const
+    value: 50
+  beta:
+    optuna_type: float
+    low: 12
+    high: 21

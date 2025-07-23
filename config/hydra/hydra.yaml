@@ -1,0 +1,12 @@
+# config/hydra/hydra.yaml
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+  job:
+    name: null
+  sweep:
+    dir: null
+  job_logging:
+    root: null
+  output_subdir: null

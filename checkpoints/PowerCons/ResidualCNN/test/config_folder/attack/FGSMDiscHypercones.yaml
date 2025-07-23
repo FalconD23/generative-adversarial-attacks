@@ -1,0 +1,25 @@
+name: FGSMRegDiscHyperconesAttack
+short_name: fgsm_disc_hypercones_attack
+named_params: [eps, n_steps, delta]
+
+attack_params:
+  eps: 0.03
+  n_steps: 50
+  delta: -0.5
+  use_sigmoid: False
+
+list_reg_model_params:
+  - model_${attack_model.name}_${model_id_attack}_${dataset.name}_attack_fgsm_attack__eps=0.03__n_steps=10
+
+hyperparameters_vary:
+  eps:
+    optuna_type: const
+    value: 0.03
+  n_steps:
+    optuna_type: const
+    value: 50
+  delta:
+    optuna_type: float
+    low: 0.1
+    high: 1.5
+    log: True

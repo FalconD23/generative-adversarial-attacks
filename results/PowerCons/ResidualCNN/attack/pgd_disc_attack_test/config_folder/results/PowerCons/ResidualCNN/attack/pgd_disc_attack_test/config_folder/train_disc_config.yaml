@@ -1,0 +1,132 @@
+slice: False
+use_disc_check: False
+test_run: False  # If true results will be not saved!!!!
+exp_name: '_test'
+exp_model_name: 'test'
+log_clearml: False
+clearml_project: "AA_train_discriminator"
+author: '' # Petr, Dima, Sophie
+load_weights_classifier: False
+load_weights_disc: False
+project_weights: 'AA_train_classifier_GOLDEN'
+project_weights_disc: 'AA_train_discriminator_GOLDEN'
+delete_weights_disc: False
+
+model_folder: checkpoints/${dataset.name}/${attack_model.name}/${exp_model_name}
+disc_path: results/${dataset.name}/${attack_model.name}/discriminator/fgsm_attack
+save_path: results/${dataset.name}/${attack_model.name}/discriminator/${attack.short_name}${exp_name}
+
+model_id_attack: 100
+model_id: 100
+
+train_self_supervised: True
+
+defaults:
+  - dataset: PowerCons
+  - model: ResidualCNN
+  - model@attack_model: ResidualCNN
+  - model@disc_model_reg: ResidualCNN
+  - model@disc_model_check: ResidualCNN
+  - attack_disc@attack: FGSM  # <- how it works?
+  # - attack_disc@attack: FGSM
+
+criterion_name: BCELoss
+criterion_params: null
+
+metric_effect: F1
+metric_hid: ROC_AUC_DISC
+
+batch_size: 64
+estimator_batch_size: null
+device: 'cuda:0'
+print_every: 1
+
+list_check_model_params:
+  # - model_id : 0
+  #   model_name: fgsm_attack_eps=0.03_nsteps=10
+
+transform_data:
+- _target_: tsai.data.transforms.TSRandomResizedCrop
+  magnitude: 0.1
+
+training_params:
+  model_name: ${model.name}
+  model_params: ${model.params}
+  criterion_name: BCELoss
+  criterion_params: null
+  optimizer_name: Adam
+  optimizer_params:
+    lr: 0.0001
+  scheduler_name: StepLR
+  scheduler_params:
+    step_size: 50
+    gamma: 0.9
+  attack_scheduler_name: StepAttackScheduler
+  attack_scheduler_params:
+    attack_step_size: 10
+    attack_gamma: 0.8
+    param_name: eps
+  n_epochs: 30
+  print_every: ${print_every}
+  early_stop_patience: 900
+
+
+enable_optimization: False
+optuna_optimizer:
+  n_trials: 3
+  sampler:
+    _target_: optuna.samplers.TPESampler
+    seed: 0
+  pruner:
+    _target_: optuna.pruners.MedianPruner
+  optim_metric: f1
+  hyperparameters_vary:
+# ATTACK
+    attack_name:
+      optuna_type: const
+      value: ${attack.name}
+    attack_params: ${attack.hyperparameters_vary}
+# MODEL
+    model_name:
+      optuna_type: const
+      value: ${model.name}
+    model_params: ${model.hyperparameters_vary}
+    criterion_name:
+      optuna_type: const
+      value: BCELoss
+    criterion_params:
+      optuna_type: const
+      value: None
+    optimizer_name:
+      optuna_type: choice
+      choices:
+        - Adam
+        - AdamW
+    optimizer_params:
+      lr:
+        optuna_type: float
+        low: 0.0001
+        high: 0.01
+        log: True
+    scheduler_name:
+      optuna_type: const
+      value: StepLR
+    scheduler_params:
+      optuna_type: const
+      value:
+        step_size: 10
+        gamma: 0.5
+    attack_scheduler_name:
+      optuna_type: const
+      value: StepAttackScheduler
+    attack_scheduler_params:
+      optuna_type: const
+      value:
+        attack_step_size: 10
+        attack_gamma: 0.8
+    n_epochs:
+      optuna_type: const
+      value: 3
+    early_stop_patience:
+      optuna_type: const
+      value: None

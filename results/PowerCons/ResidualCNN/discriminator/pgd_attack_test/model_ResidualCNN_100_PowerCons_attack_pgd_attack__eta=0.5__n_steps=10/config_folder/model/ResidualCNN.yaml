@@ -1,0 +1,18 @@
+name: ResidualCNN
+
+params:
+  c_in: 1 # по умолчанию
+  c_out: 1 # по умолчанию
+  coord: False
+  separable: False
+  zero_norm: False
+
+hyperparameters_vary:
+  c_in:
+    optuna_type: const
+    value: 1
+  c_out:
+    optuna_type: const
+    value: 1
+
+attack_train_mode: False

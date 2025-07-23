@@ -1,0 +1,18 @@
+name: PGDAttack
+short_name: pgd_attack
+named_params: [eta, n_steps]
+
+attack_params:
+  n_steps: 10
+  eta: 0.5
+  norm: null
+
+hyperparameters_vary:
+  eps:
+    optuna_type: float
+    low: 0.01
+    high: 0.5
+    log: True
+  n_steps:
+    optuna_type: const
+    value: 50

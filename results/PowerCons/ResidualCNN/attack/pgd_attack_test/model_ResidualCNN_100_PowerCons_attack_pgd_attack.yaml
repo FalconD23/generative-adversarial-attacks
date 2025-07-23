@@ -1,0 +1,63 @@
+slice: False
+use_disc_check: True
+test_run: False # If true results will be not saved!!!!
+exp_name: '_test'
+exp_model_name: 'test'
+exp_disc_name: _test
+log_clearml: False
+clearml_project: "AA_attack_run"
+author: '' # Petr, Dima, Sophie
+load_weights_classifier: False
+load_weights_disc: False
+project_weights: 'AA_train_classifier_GOLDEN'
+project_weights_disc: 'AA_train_discriminator_GOLDEN'
+delete_weights_disc: False
+
+model_folder: checkpoints/${dataset.name}/${attack_model.name}/${exp_model_name}
+# disc_path: results/${dataset.name}/${attack_model.name}/discriminator/pgd_attack${exp_disc_name} orig
+# disc_path: results/${dataset.name}/${attack_model.name}/discriminator/fgsm_attack${exp_disc_name}
+disc_path: results/${dataset.name}/${attack_model.name}/discriminator/${attack.short_name}${exp_name}
+save_path: results/${dataset.name}/${attack_model.name}/attack/${attack.short_name}${exp_name}
+
+model_id_attack: 100
+
+hydra:
+  mode: RUN #MULTIRUN
+  sweeper:
+    params:
+      ++attack.attack_params.eps: 0.01,0.03
+
+defaults:
+  - dataset: PowerCons
+  - model@attack_model: ResidualCNN
+  - model@disc_model_reg: ResidualCNN
+  - model@disc_model_check: ResidualCNN
+  - attack: PGD
+#   - attack: FGSMDisc
+
+criterion_name: BCELoss
+criterion_params: null
+
+batch_size: 64
+estimator_batch_size: null
+device: 'cuda:0'
+
+metric_effect: F1
+metric_hid: ROC_AUC_DISC
+
+list_check_model_params:
+#   - model_ResidualCNN_100_PowerCons_attack_fgsm_attack__eps=0.03__n_steps=3
+  - model_ResidualCNN_100_PowerCons_attack_pgd_attack__eta=0.5__n_steps=10
+#   - model_ResidualCNN_100_PowerCons_attack_fgsm_attack__eps=0.03__n_steps=10
+
+enable_optimization: False
+optuna_optimizer:
+  n_trials: 5
+  sampler:
+    _target_: optuna.samplers.TPESampler
+    seed: 0
+  pruner:
+    _target_: optuna.pruners.MedianPruner
+  optim_metric: F1
+  hyperparameters_vary:
+    ${attack.hyperparameters_vary}

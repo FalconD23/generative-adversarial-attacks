@@ -1,8 +1,8 @@
 raw.githubusercontent.com/hfawaz/cd-diagram/*
-results/*
+# results/*
 results_old/*
 data/*
-checkpoints/*
+# checkpoints/*
 checkpoints_old/*
 *credentials*
 .ipynb_checkpoints/*
@@ -22,6 +22,6 @@ smi.ipynb
 pictures/*
 .docker/*
 train_classifier1.py
-config/*
+# config/*
 loaded_clearml/*
 

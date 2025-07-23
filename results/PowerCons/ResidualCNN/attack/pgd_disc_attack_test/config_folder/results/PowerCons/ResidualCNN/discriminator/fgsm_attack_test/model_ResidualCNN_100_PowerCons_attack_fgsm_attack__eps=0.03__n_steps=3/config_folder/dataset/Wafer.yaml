@@ -1,0 +1,20 @@
+name: Wafer
+num_classes: 2
+seq_len: 152
+total_object_count: 7164
+train:
+  object_count: 1000
+  max: 11.787121
+  mean: -1.0593100796540966e-10
+  min: -3.0539799
+  std: 0.9967050981341317
+  median: 0.28879025
+  roughness: 0.13544482639162725
+test:
+  object_count: 6164
+  max: 12.126726
+  mean: -2.847725186611917e-10
+  min: -2.9839101
+  std: 0.9967050981140545
+  median: 0.28033693
+  roughness: 0.13599318515586145

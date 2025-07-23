@@ -1,0 +1,29 @@
+name: DefenseRegDiscAttack
+short_name: fgsm_disc_defense
+named_params: [eps, n_steps]
+
+attack_params:
+  eps: 0.03
+  n_steps: 10
+  use_sigmoid: False
+
+list_reg_model_params:
+  - model_id : 0
+    model_name: fgsm_attack_eps=0.03_nsteps=10
+  # - model_id: 0
+  #   model_name: 'fgsm_disc_attack2_eps=0.03_alpha=10_nsteps=10'
+  # - model_id: 1
+  #   model_name: 'fgsm_disc_attack2_eps=0.03_alpha=1_nsteps=10'
+  # - model_id: 1
+  #   model_name: 'fgsm_disc_attack2_eps=0.03_alpha=10_nsteps=10'
+  # - model_id: 2
+  #   model_name: 'fgsm_disc_attack2_eps=0.03_alpha=1_nsteps=10'
+  # - model_id: 2
+
+hyperparameters_vary:
+  eps:
+    optuna_type: const
+    value: 0.03
+  n_steps:
+    optuna_type: const
+    value: 50

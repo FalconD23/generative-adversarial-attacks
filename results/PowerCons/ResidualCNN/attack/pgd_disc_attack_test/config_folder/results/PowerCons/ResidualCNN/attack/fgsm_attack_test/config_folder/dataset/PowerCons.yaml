@@ -1,0 +1,20 @@
+name: PowerCons
+num_classes: 2
+seq_len: 144
+total_object_count: 360
+train:
+  object_count: 180
+  max: 6.150072421276428
+  mean: -1.7736155479814228e-16
+  min: -0.9882441283924925
+  std: 0.9999999999999999
+  median: -0.4639090210070178
+  roughness: 0.15408237025050991
+test:
+  object_count: 180
+  max: 6.002890636747172
+  mean: -0.010892417367795152
+  min: -1.0250395745248067
+  std: 0.9910649059168454
+  median: -0.4823067440731748
+  roughness: 0.1544105925399531

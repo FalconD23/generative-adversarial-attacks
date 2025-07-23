@@ -1,0 +1,28 @@
+name: PGDRegDiscAttack
+short_name: pgd_disc_attack
+named_params: [eta, n_steps, alpha]
+
+attack_params:
+  n_steps: 50
+  eta: 0.01
+  alpha: 0.01
+  norm: null
+  use_sigmoid: False
+  criterion: BCELoss
+
+list_reg_model_params:
+  - model_id : 0
+    model_name: pgd_attack_eps=0.03_nsteps=10
+  # - model_id: 1
+  #   model_name: 'fgsm_disc_attack_eps=0.03_alpha=1_nsteps=10'
+
+
+hyperparameters_vary:
+  eps:
+    optuna_type: float
+    low: 0.01
+    high: 0.5
+    log: True
+  n_steps:
+    optuna_type: const
+    value: 50

@@ -1,0 +1,20 @@
+name: Strawberry
+num_classes: 2
+seq_len: 235
+total_object_count: 983
+train:
+  object_count: 613
+  max: 3.681954
+  mean: 3.3532426621947084e-11
+  min: -2.3281436
+  std: 0.9978700721199872
+  median: -0.079149377
+  roughness: 0.023558950476570348
+test:
+  object_count: 370
+  max: 3.7226979
+  mean: -6.900005244187767e-12
+  min: -2.1276037
+  std: 0.9978700721438434
+  median: -0.0862190445
+  roughness: 0.02337181025908428

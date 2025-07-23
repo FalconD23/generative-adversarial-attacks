@@ -1,0 +1,140 @@
+attack:
+  attack_params:
+    alpha: 0.01
+    criterion: BCELoss
+    eta: 0.01
+    n_steps: 50
+    norm: null
+    use_sigmoid: false
+  hyperparameters_vary:
+    eps:
+      high: 0.5
+      log: true
+      low: 0.01
+      optuna_type: float
+    n_steps:
+      optuna_type: const
+      value: 50
+  list_reg_model_params:
+  - model_ResidualCNN_100_PowerCons_attack_pgd_attack__eta=0.5__n_steps=10
+  name: PGDRegDiscAttack
+  named_params:
+  - eta
+  - n_steps
+  - alpha
+  short_name: pgd_disc_attack
+attack_model:
+  attack_train_mode: false
+  hyperparameters_vary:
+    c_in:
+      optuna_type: const
+      value: 1
+    c_out:
+      optuna_type: const
+      value: 1
+  name: ResidualCNN
+  params:
+    c_in: 1
+    c_out: 1
+    coord: false
+    separable: false
+    zero_norm: false
+author: ''
+batch_size: 64
+clearml_project: AA_attack_run
+criterion_name: BCELoss
+criterion_params: null
+dataset:
+  name: PowerCons
+  num_classes: 2
+  seq_len: 144
+  test:
+    max: 6.002890636747172
+    mean: -0.010892417367795152
+    median: -0.4823067440731748
+    min: -1.0250395745248067
+    object_count: 180
+    roughness: 0.1544105925399531
+    std: 0.9910649059168454
+  total_object_count: 360
+  train:
+    max: 6.150072421276428
+    mean: -1.7736155479814228e-16
+    median: -0.4639090210070178
+    min: -0.9882441283924925
+    object_count: 180
+    roughness: 0.15408237025050991
+    std: 0.9999999999999999
+delete_weights_disc: false
+device: cuda:0
+disc_model_check:
+  attack_train_mode: false
+  hyperparameters_vary:
+    c_in:
+      optuna_type: const
+      value: 1
+    c_out:
+      optuna_type: const
+      value: 1
+  name: ResidualCNN
+  params:
+    c_in: 1
+    c_out: 1
+    coord: false
+    separable: false
+    zero_norm: false
+disc_model_reg:
+  attack_train_mode: false
+  hyperparameters_vary:
+    c_in:
+      optuna_type: const
+      value: 1
+    c_out:
+      optuna_type: const
+      value: 1
+  name: ResidualCNN
+  params:
+    c_in: 1
+    c_out: 1
+    coord: false
+    separable: false
+    zero_norm: false
+disc_path: results/PowerCons/ResidualCNN/discriminator/pgd_attack_test
+enable_optimization: false
+estimator_batch_size: null
+exp_disc_name: _test
+exp_model_name: test
+exp_name: _test
+list_check_model_params:
+- model_ResidualCNN_100_PowerCons_attack_pgd_attack__eta=0.5__n_steps=10
+load_weights_classifier: false
+load_weights_disc: false
+log_clearml: false
+metric_effect: F1
+metric_hid: ROC_AUC_DISC
+model_folder: checkpoints/PowerCons/ResidualCNN/test
+model_id_attack: 100
+optuna_optimizer:
+  hyperparameters_vary:
+    eps:
+      high: 0.5
+      log: true
+      low: 0.01
+      optuna_type: float
+    n_steps:
+      optuna_type: const
+      value: 50
+  n_trials: 5
+  optim_metric: F1
+  pruner:
+    _target_: optuna.pruners.MedianPruner
+  sampler:
+    _target_: optuna.samplers.TPESampler
+    seed: 0
+project_weights: AA_train_classifier_GOLDEN
+project_weights_disc: AA_train_discriminator_GOLDEN
+save_path: results/PowerCons/ResidualCNN/attack/pgd_disc_attack_test
+save_timestamp: 2025:07:22 14:31:24
+slice: false
+test_run: false
+use_disc_check: true
