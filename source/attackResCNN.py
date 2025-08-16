@@ -21,11 +21,9 @@ class ResCNNModel(nn.Module):
 
 
 class AttackCNN(nn.Module):
-    def __init__(self, hidden_dim=64, x_dim=1, activation_type='tanh'):
+    def __init__(self, hidden_dim=128, x_dim=1, activation_type='tanh'):
         super().__init__()
-        self.step_cnn = ResCNNModel(x_dim=x_dim,
-                                    output_dim=hidden_dim,
-                                    activation_type='identity')
+        self.step_cnn = ResCNNModel(x_dim=x_dim, output_dim=hidden_dim, activation_type='identity')
         self.fc = nn.Linear(hidden_dim, x_dim)
         self.act = Activation(activation_type)
 
@@ -35,3 +33,4 @@ class AttackCNN(nn.Module):
         h = self.step_cnn(x_flat)
         h = h.view(B, L, -1)
         return self.fc(self.act(h))
+        # return self.act(h)
