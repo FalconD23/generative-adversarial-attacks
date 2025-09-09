@@ -3,6 +3,8 @@ from typing import Optional
 import torch
 from torch import nn
 
+import tsai.models.all as mdls
+
 from activation import Activation
 
 

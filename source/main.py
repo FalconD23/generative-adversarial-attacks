@@ -7,6 +7,11 @@ from pathlib import Path
 from power_cons import load_powercons, PowerConsDataset
 from LSTM_Classifier import LSTMClassifier
 from ResCNN_Classifier import ResCNNClassifier
+from iter_model_attack import IterModelAttack
+from long_LSTM_classifier import LongLSTMClassifier
+from prepare_victim import prepare_victim_for_input_grad
+from attack_long_LSTM import AttackLongLSTM
+from train_iter_attack import train_attack_iter
 from train_classifier import train_classifier
 from attacks import *
 from attackLSTM import AttackLSTM
@@ -18,6 +23,7 @@ from metrics import *
 SEED = 2
 EPS = 0.5
 BATCH_SIZE = 64
+long = False
 TRAIN_PATH = Path('PowerCons_TRAIN.tsv')
 TEST_PATH = Path('PowerCons_TEST.tsv')
 
@@ -56,7 +62,17 @@ def main():
 
     # Train LSTM classifier
     print("LSTM classifier training")
-    clf_LSTM = LSTMClassifier(n_classes, hidden_size=50, num_layers=1)
+    if long:
+        clf_LSTM = LongLSTMClassifier(
+            n_classes=n_classes,
+            n_splits=10,
+            input_size=1,
+            hidden_size=64,
+            num_layers=2,
+            dropout=0.3
+        ).to(device)
+    else:
+        clf_LSTM = LSTMClassifier(n_classes, hidden_size=50, num_layers=1)
 
     history, _, _ = train_classifier(
         clf_LSTM,
@@ -99,13 +115,21 @@ def main():
 
     # Train LSTM attack
     print("LSTM attacker training")
-    atk_LSTM = AttackLSTM(hidden_dim=128, dropout=0.6, x_dim=1, activation_type='tanh').to(device)
+    if long:
+        atk_LSTM = AttackLongLSTM(
+            n_splits=11,
+            hidden_dim=64,
+            x_dim=1,
+            dropout=0.25,
+        ).to(device)
+    else:
+        atk_LSTM = AttackLSTM(hidden_dim=128, dropout=0.6, x_dim=1, activation_type='tanh').to(device)
 
-    eps_LSTM = 1.371353
+    # eps_LSTM = 1.371353
     train_attacker(atk_LSTM,
                    clf_LSTM,
                    train_dl,
-                   eps=eps_LSTM,
+                   eps=EPS,
                    epochs=20,
                    lr=0.01749500,
                    alpha_l2=0.00068663089588,
@@ -126,9 +150,9 @@ def main():
     # weights_path = 'weights/surr_resCNNfc_CPU_0.28.pth'
     # atk_resCNN.load_state_dict(torch.load(weights_path, map_location=device))
 
-    eps_resCNN = 1.9910549963365909
+    # eps_resCNN = 1.9910549963365909
     train_attacker(atk_resCNN, clf_resCNN, train_dl,
-                   eps=eps_resCNN,
+                   eps=EPS,
                    epochs=50, lr=0.00021041627898080928, alpha_l2=4.549583575912758e-05,
                    device=device, patience=10, debug=False)
 
@@ -162,28 +186,106 @@ def main():
         x_dim=1,
         activation_type="tanh",
         patch_kwargs=patch_params,
-    )
+    ).to(device)
 
-    eps_PatchTST = 1.52738926
+    # eps_PatchTST = 1.52738926
     train_attacker(atk_PatchTST, clf_resCNN, train_dl,
-                   eps=eps_PatchTST,
+                   eps=EPS,
                    epochs=50, lr=0.000202314, alpha_l2=0.000114732,
                    device=device, patience=8, debug=False)
 
+    # Iter attack
+
+    attacker = AttackPatchTST(hidden_dim=256, x_dim=1, activation_type='tanh',
+                              patch_kwargs=patch_params).to(device)
+    # attacker.load_state_dict(atk_PatchTST.state_dict())
+
+    target = clf_resCNN
+    prepare_victim_for_input_grad(target)
+
+    disc = None
+
+    best = {'eps': 0.3951928744395862,
+            'lr': 0.0006180267696054032,
+            'alpha_l2': 0.00019513735579565044,
+            'steps': 13, 'use_alpha_explicit': False,
+            'proj': 'none', 'proj_equal_eps': True, 'rand_init': True, 'bpda': False,
+            'use_sign': False, 'momentum_mu': 0.8785765938958393, 'step_normalize': None,
+            'step_noise_std': 0.004224670729218012, 'victim_eval': True, 'hidden_dim': 128}
+    best['alpha'] = None
+
+    alpha_explicit = None
+
+    val_loss, val_acc = train_attack_iter(
+        attacker=attacker,
+        victim=target,
+        loader=train_dl,
+
+        eps=EPS,
+        # eps=best["eps"],
+        steps=best["steps"],
+        alpha=alpha_explicit,
+        epochs=10,
+        lr=best["lr"],
+        alpha_l2=best["alpha_l2"],
+
+        lambda_disc=0.0,  # disc=None → без компоненты дискриминатора
+        disc=disc,
+        device=device,
+        patience=8,
+
+        # Базовые флаги совместимости
+        data_clamp=None,
+        rand_init=best["rand_init"],
+        use_sign=best["use_sign"],
+        equal_eps=best["proj_equal_eps"],  # для совместимости; реальный флаг ниже
+        bpda=best["bpda"],
+        verbose=True,
+
+        # Новые расширенные флаги из обновлённого тренера
+        proj=best["proj"],  # "none"
+        proj_equal_eps=best["proj_equal_eps"],  # False
+        momentum_mu=best["momentum_mu"],  # MI-FGSM momentum
+        step_normalize=best["step_normalize"],  # "linf"
+        step_noise_std=best["step_noise_std"],  # небольшой шум шага
+        victim_eval=best["victim_eval"],  # False (нужно для cudnn-RNN backward)
+        grad_clip=None,  # безопасное ограничение градиента
+    )
+
+    print(f"[done] val_loss={val_loss:.4f}  |  val_acc(after attack)={val_acc:.4f}")
+
+    iter_attack = IterModelAttack(
+        attacker=attacker, eps=best['eps'], n_iter=best['steps'], alpha=None,
+        clamp=None, rand_init=best['rand_init'], use_sign=best['use_sign'],
+        equal_eps=best['proj_equal_eps'], bpda=best['bpda'],
+        proj=best['proj'], proj_equal_eps=best['proj_equal_eps'],
+        data_clamp=None,
+        momentum_mu=best['momentum_mu'], step_normalize=None,
+        step_noise_std=best['step_noise_std'],
+    ).to(device)
+
+    eps_iter = best['eps']
+
     # Comparsion
     fgsm_attack = FGSMAttack(EPS)
+    ifgsm_attack = iFGSMAttack(eps=EPS, n_iter=10, rand_init=False, momentum=0.2)
+    pgd_attack = PGDAttack(EPS, n_iter=10)
 
     mba_LSTM = ModelBasedAttack(atk_LSTM, EPS)
     mba_resCNN = ModelBasedAttack(atk_resCNN, EPS)
     mba_PatchTST = ModelBasedAttack(atk_PatchTST, EPS)
+
+    mba_iter = ModelBasedAttack(iter_attack, EPS, is_iter=True)
     estimation_dl = train_dl
 
     attacks = {'Unattacked': lambda model, x, y: x,
                'FGSM': fgsm_attack,
-               'iFGSM10nonrand02': iFGSMAttack(eps=EPS, n_iter=10, rand_init=False, momentum=0.2),
+               'iFGSM': ifgsm_attack,
+               'PGD': pgd_attack,
                'LSTM': mba_LSTM,
                'resCNN': mba_resCNN,
-               'PatchTST': mba_PatchTST}
+               'PatchTST': mba_PatchTST,
+               'iter': mba_iter}
 
     def test_attacks(classification_model):
         for name, atk in attacks.items():

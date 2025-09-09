@@ -25,9 +25,18 @@ def train_attacker(attacker,
         run_vloss, run_acc, n = 0., 0., 0
         for x, y in loader:
             x, y = x.to(device, non_blocking=True), y.to(device, non_blocking=True)
-            delta = eps * torch.tanh(attacker(x))
-            if clamp:
-                delta = torch.clamp(delta, -1, 1)
+
+            # * tanh regularization
+            # delta = eps * torch.tanh(atk_model(x))
+
+            # * l2-proj regularization
+            raw_delta = attacker(x)
+            norms = raw_delta.norm(p=2, dim=(1, 2), keepdim=True)  # (B, 1, 1)
+            delta = eps * raw_delta / (norms + 1e-12)
+
+            # * sign regularization
+            # delta = eps * torch.sign(atk_model(x))
+
             x_adv = x + delta
             logits = victim(x_adv)
             vloss = F.cross_entropy(logits, y)
@@ -39,7 +48,7 @@ def train_attacker(attacker,
                 loss = -vloss + reg
             if debug:
                 print(f'\nx={((x[0].detach().cpu() ** 2).mean()) ** 0.5}')
-                print(f'delta={((delta[0].detach().cpu() ** 2).mean()) ** 0.5}')
+                print(f'delta={(delta[0].detach().cpu().norm(p=2).item())}')
                 print(f'y={y.detach().cpu()[0]}|logits={logits.detach().cpu().argmax(1)[0]}')
                 print(f'vloss = {vloss}| reg = {reg}')
 
