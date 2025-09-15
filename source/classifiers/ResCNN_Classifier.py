@@ -1,7 +1,7 @@
 from torch import nn
 from tsai.models.ResCNN import ResCNN
 
-from models.activation import Activation
+from source.models.activation import Activation
 
 
 class ResCNNClassifier(nn.Module):
