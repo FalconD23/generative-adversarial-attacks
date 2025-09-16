@@ -2,8 +2,8 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from early_stopping import EarlyStopping
-from iter_model_attack import IterModelAttack
+from source.training.early_stopping import EarlyStopping
+from source.attacks.iMBA_PatchTST import IterModelAttack
 
 
 @torch.no_grad()
@@ -23,7 +23,7 @@ def train_attack_iter(
         lr=1e-4,
         alpha_l2=1e-3,
         lambda_disc=0.0,
-        disc: nn.Module | None = None,
+        disc: nn.Module = None,
         device="cpu",
         patience=4,
         data_clamp=None,  # как раньше
@@ -36,10 +36,10 @@ def train_attack_iter(
         proj: str = "none",  # "none" | "linf" | "l2"
         proj_equal_eps: bool = False,
         momentum_mu: float = 0.0,  # MI-FGSM
-        step_normalize: str | None = None,  # "meanabs" | "l2" | "linf" | None
+        step_normalize: str  = None,  # "meanabs" | "l2" | "linf" | None
         step_noise_std: float = 0.0,
         victim_eval: bool = True,
-        grad_clip: float | None = None,
+        grad_clip: float = None,
 ):
     attacker.to(device).train()
     victim.to(device)
@@ -86,8 +86,8 @@ def train_attack_iter(
                 print(f"[Δ] mean ||x||_2 = {x_mean:.3f} | mean ||x_adv||_2 = {x_adv_mean:.3f}")
 
             logits = victim(x_adv)
-            vloss = F.cross_entropy(logits, y)
-            acc = (logits.argmax(1) == y).float().mean().item()
+            vloss  = F.cross_entropy(logits, y)
+            acc    = (logits.argmax(1) == y).float().mean().item()
 
             loss_disc = torch.tensor(0.0, device=device)
             if disc is not None:
@@ -100,7 +100,7 @@ def train_attack_iter(
                     loss_disc = nn.CrossEntropyLoss()(d_out, target)
 
             delta = (x_adv - x)
-            reg = alpha_l2 * (delta ** 2).mean()
+            reg = alpha_l2 * (delta**2).mean()
 
             loss = -(vloss) + lambda_disc * loss_disc + reg
 
@@ -125,3 +125,30 @@ def train_attack_iter(
 
     torch.save(attacker.state_dict(), 'attacker_iter_unrolled.pth')
     return val_loss, val_acc
+
+
+def prepare_victim_for_input_grad(victim: nn.Module):
+    # 1) общий eval + заморозка весов
+    victim.eval()
+    for p in victim.parameters():
+        p.requires_grad_(False)
+
+    # 2) RNN в train(True), без dropout
+    for m in victim.modules():
+        if isinstance(m, (nn.LSTM, nn.GRU, nn.RNN)):
+            m.train(True)
+            if hasattr(m, 'dropout'):
+                m.dropout = 0.0
+            # иногда полезно обновить внутренние буферы для cuDNN
+            try:
+                m.flatten_parameters()
+            except Exception:
+                pass
+
+    # 3) отключаем стохастику в явных Dropout, BN оставляем в eval
+    for m in victim.modules():
+        if isinstance(m, nn.Dropout):
+            m.p = 0.0
+            m.eval()
+        elif isinstance(m, (nn.BatchNorm1d, nn.BatchNorm2d, nn.BatchNorm3d)):
+            m.eval()
