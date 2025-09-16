@@ -1,13 +1,13 @@
 # generative-adversarial-attacks
 
 
-We propose generative adversarial attacks for different time-series models that generate a adversarial perturbation using a trained model. 
+We propose generative adversarial attacks for different time-series models that generate an adversarial perturbation using a trained model. 
 Using different combinations of architectures, we trained attacking models on pre-trained classifiers(which we call *learning-target*) and compared them with classical FGSM and iFGSM attacks.
-The proposed adversarial attack with the model-based method makes attacks faster than classic. Our claims are supported by benchmarking via datasets from UCR and different models: recurrent, convolution, state-space, and transformers. Our method also works in black-box conditions when there is no access to the gradients of the attacked classifier(which we call *infernce-target*). 
+The proposed adversarial attack with the model-based method makes attacks faster than classic. Our claims are supported by benchmarking via datasets from UCR and different models: recurrent, convolution, state-space, and transformers. Our method also works in black-box conditions when there is no access to the gradients of the attacked classifier(which we call *inference-target*). 
 Also, in analogy to iFGSM and diffusion models, an iterative generative attack has been proposed that attacks data sequentially.
 
 ## Data
-You need to download [UCR dataset](https://paperswithcode.com/dataset/ucr-time-series-classification-archive) dataset and put it into the `datasets` directory.
+You need to download the [UCR dataset](https://paperswithcode.com/dataset/ucr-time-series-classification-archive) dataset and put it into the `datasets` directory.
 
 ## Quick Start
 
