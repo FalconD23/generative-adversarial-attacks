@@ -1,6 +1,6 @@
 from torch import nn
 
-from activation import Activation
+from source.models.activation import Activation
 
 
 class AttackLSTM(nn.Module):
