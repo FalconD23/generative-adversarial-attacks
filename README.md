@@ -65,7 +65,6 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
 
 ## Results
 
-<div style="overflow-x:auto">
 <table>
   <thead>
     <tr>
@@ -76,8 +75,8 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
       <th colspan="3">Strawberry</th>
     </tr>
     <tr>
-      <th>FR↑</th><th>E↑</th><th>TA↓</th>
-      <th>FR↑</th><th>E↑</th><th>TA↓</th>
+      <th>FR&#8593;</th><th>E&#8593;</th><th>TA&#8595;</th>
+      <th>FR&#8593;</th><th>E&#8593;</th><th>TA&#8595;</th>
     </tr>
   </thead>
   <tbody>
@@ -89,11 +88,11 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
       <td>0</td><td>0.114</td><td>0.862</td>
     </tr>
     <tr><td>FGSM</td><td>-</td>
-      <td>0.831</td><td><u>0.826</u></td><td><u>0.126</u></td>
-      <td><u>0.634</u></td><td><u>0.574</u></td><td><u>0.349</u></td></tr>
+      <td>0.831</td><td><mark>0.826</mark></td><td><mark>0.126</mark></td>
+      <td><mark>0.634</mark></td><td><mark>0.574</mark></td><td><mark>0.349</mark></td></tr>
     <tr><td>iFGSM</td><td>-</td>
-      <td><u>0.832</u></td><td>0.814</td><td>0.126</td>
-      <td><b><u>0.691</u></b></td><td><b><u>0.775</u></b></td><td><b><u>0.172</u></b></td></tr>
+      <td><mark>0.832</mark></td><td>0.814</td><td>0.126</td>
+      <td><strong>0.691</strong></td><td><strong>0.775</strong></td><td><strong>0.172</strong></td></tr>
     <tr><td>Iterative Gen. Attack (our)</td><td>LSTM</td>
       <td>0.522</td><td>0.333</td><td>0.5</td>
       <td>0.24</td><td>0.24</td><td>0.715</td></tr>
@@ -101,7 +100,7 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
       <td>0.482</td><td>0.778</td><td>0.5</td>
       <td>0.363</td><td>0.329</td><td>0.639</td></tr>
     <tr><td>Iterative Gen. Attack (our)</td><td>PatchTST</td>
-      <td><b><u>0.863</u></b></td><td><b><u>0.86</u></b></td><td><b><u>0.085</u></b></td>
+      <td><strong>0.863</strong></td><td><strong>0.86</strong></td><td><strong>0.085</strong></td>
       <td>0.501</td><td>0.371</td><td>0.484</td></tr>
     <tr><td>Gen. attack (our)</td><td>LSTM</td>
       <td>0.311</td><td>0.493</td><td>0.691</td>
@@ -122,8 +121,8 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
       <td>0.448</td><td>0.487</td><td>0.524</td>
       <td>0.385</td><td>0.267</td><td>0.617</td></tr>
     <tr><td>iFGSM</td><td>-</td>
-      <td>0.842</td><td><b><u>0.921</u></b></td><td><b><u>0.081</u></b></td>
-      <td><b><u>0.918</u></b></td><td><b><u>0.843</u></b></td><td><b><u>0.089</u></b></td></tr>
+      <td>0.842</td><td><strong>0.921</strong></td><td><strong>0.081</strong></td>
+      <td><strong>0.918</strong></td><td><strong>0.843</strong></td><td><strong>0.089</strong></td></tr>
     <tr><td>Iterative Gen. Attack (our)</td><td>LSTM</td>
       <td>0.103</td><td>0.114</td><td>0.913</td>
       <td>0.296</td><td>0.265</td><td>0.632</td></tr>
@@ -131,13 +130,13 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
       <td>0.642</td><td>0.567</td><td>0.37</td>
       <td>0.342</td><td>0.275</td><td>0.591</td></tr>
     <tr><td>Iterative Gen. Attack (our)</td><td>PatchTST</td>
-      <td><u>0.857</u></td><td><u>0.869</u></td><td><u>0.091</u></td>
-      <td><u>0.653</u></td><td><u>0.567</u></td><td><u>0.314</u></td></tr>
+      <td><mark>0.857</mark></td><td><mark>0.869</mark></td><td><mark>0.091</mark></td>
+      <td><mark>0.653</mark></td><td><mark>0.567</mark></td><td><mark>0.314</mark></td></tr>
     <tr><td>Gen. attack (our)</td><td>LSTM</td>
       <td>0.004</td><td>0.071</td><td>0.922</td>
       <td>0.002</td><td>0.002</td><td>0.995</td></tr>
     <tr><td>Gen. attack (our)</td><td>ResCNN</td>
-      <td><b><u>0.909</u></b></td><td>0.837</td><td>0.148</td>
+      <td><strong>0.909</strong></td><td>0.837</td><td>0.148</td>
       <td>0.463</td><td>0.331</td><td>0.538</td></tr>
     <tr><td>Gen. attack (our)</td><td>PatchTST</td>
       <td>0.766</td><td>0.779</td><td>0.183</td>
@@ -152,14 +151,14 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
       <td>0.65</td><td>0.512</td><td>0.294</td>
       <td>0.359</td><td>0.316</td><td>0.552</td></tr>
     <tr><td>iFGSM</td><td>-</td>
-      <td><b><u>0.911</u></b></td><td><b><u>1</u></b></td><td><b><u>0</u></b></td>
-      <td><b><u>0.668</u></b></td><td><u>0.409</u></td><td><b><u>0.246</u></b></td></tr>
+      <td><strong>0.911</strong></td><td><strong>1</strong></td><td><strong>0</strong></td>
+      <td><strong>0.668</strong></td><td><mark>0.409</mark></td><td><strong>0.246</strong></td></tr>
     <tr><td>Iterative Gen. Attack (our)</td><td>LSTM</td>
       <td>0.367</td><td>0.317</td><td>0.694</td>
       <td>0.519</td><td>0.221</td><td>0.52</td></tr>
     <tr><td>Iterative Gen. Attack (our)</td><td>ResCNN</td>
-      <td><u>0.767</u></td><td><u>0.712</u></td><td><u>0.217</u></td>
-      <td><u>0.591</u></td><td><b><u>0.426</u></b></td><td>0.396</td></tr>
+      <td><mark>0.767</mark></td><td><mark>0.712</mark></td><td><mark>0.217</mark></td>
+      <td><mark>0.591</mark></td><td><strong>0.426</strong></td><td>0.396</td></tr>
     <tr><td>Iterative Gen. Attack (our)</td><td>PatchTST</td>
       <td>0.406</td><td>0.324</td><td>0.689</td>
       <td>0.42</td><td>0.224</td><td>0.558</td></tr>
@@ -168,12 +167,15 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
       <td>0.231</td><td>0.258</td><td>0.601</td></tr>
     <tr><td>Gen. attack (our)</td><td>ResCNN</td>
       <td>0.756</td><td>0.679</td><td>0.222</td>
-      <td>0.581</td><td>0.38</td><td><u>0.272</u></td></tr>
+      <td>0.581</td><td>0.38</td><td><mark>0.272</mark></td></tr>
     <tr><td>Gen. attack (our)</td><td>PatchTST</td>
       <td>0</td><td>0.061</td><td>0.939</td>
       <td>0</td><td>0.181</td><td>0.911</td></tr>
   </tbody>
 </table>
-</div>
 
-Results after attacks for different target models and datasets. The best result for a dataset and target model is highlighted in bold, while the second best result is underlined.
+<p>
+Results after attacks for different target models and datasets.
+The best result for a dataset and target model is <strong>bold</strong>;
+the second best is <mark>highlighted</mark>.
+</p>
