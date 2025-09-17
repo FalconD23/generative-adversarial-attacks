@@ -65,6 +65,12 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
 
 ## Results
 
+<p>
+Results after attacks for different target models and datasets.
+The best result for a dataset and target model is <strong>bold</strong>;
+the second best is <mark>highlighted</mark>.
+</p>
+
 <table>
   <thead>
     <tr>
@@ -173,9 +179,3 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
       <td>0</td><td>0.181</td><td>0.911</td></tr>
   </tbody>
 </table>
-
-<p>
-Results after attacks for different target models and datasets.
-The best result for a dataset and target model is <strong>bold</strong>;
-the second best is <mark>highlighted</mark>.
-</p>
