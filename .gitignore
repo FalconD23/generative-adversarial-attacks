@@ -1,0 +1,6 @@
+.vscode/
+.ruff_cache/
+*.pyc
+**/__pycache__/**
+/*.pth
+!/*/*.pth
