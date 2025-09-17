@@ -112,8 +112,6 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
     <tr><td>Gen. attack (our)</td><td>PatchTST</td>
       <td>0.822</td><td>0.8</td><td>0.146</td>
       <td>0.086</td><td>0.152</td><td>0.814</td></tr>
-
-    <!-- ResCNN -->
     <tr>
       <td rowspan="9">ResCNN</td>
       <td>Unattacked</td><td>-</td>
@@ -144,8 +142,6 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
     <tr><td>Gen. attack (our)</td><td>PatchTST</td>
       <td>0.766</td><td>0.779</td><td>0.183</td>
       <td>0.004</td><td>0.005</td><td>0.994</td></tr>
-
-    <!-- PatchTST -->
     <tr>
       <td rowspan="9">PatchTST</td>
       <td>Unattacked</td><td>-</td>
