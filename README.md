@@ -66,7 +66,7 @@ We use a hydra-based experiment configuration structure. To run `train_discrimin
 ## Results
 
 <p>
-Results after attacks for different target models and datasets.
+Table 1.</strong>. Results after attacks for different target models and datasets.
 The best result for a dataset and target model is <strong>bold</strong>;
 the second best is <mark>highlighted</mark>.
 </p>
@@ -177,5 +177,72 @@ the second best is <mark>highlighted</mark>.
     <tr><td>Gen. attack (our)</td><td>PatchTST</td>
       <td>0</td><td>0.061</td><td>0.939</td>
       <td>0</td><td>0.181</td><td>0.911</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Table 2.</strong> Effectiveness of generative attacks when the inference (attacked) model differs from the model used for training.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th rowspan="2">Inference target</th>
+      <th rowspan="2">Learning target</th>
+      <th colspan="3">PowerCons</th>
+      <th colspan="3">Strawberry</th>
+    </tr>
+    <tr>
+      <th>LSTM</th><th>ResCNN</th><th>PatchTST</th>
+      <th>LSTM</th><th>ResCNN</th><th>PatchTST</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="3">LSTM</td>
+      <td>LSTM</td>
+      <td>0.217</td><td>0.239</td><td>0.152</td>
+      <td>0.493</td><td>0.600</td><td>0.800</td>
+    </tr>
+    <tr>
+      <td>ResCNN</td>
+      <td>0.194</td><td>0.245</td><td>0.147</td>
+      <td>0.210</td><td>0.551</td><td>0.761</td>
+    </tr>
+    <tr>
+      <td>PatchTST</td>
+      <td>0.221</td><td>0.333</td><td>0.503</td>
+      <td>0.086</td><td>0.328</td><td>0.502</td>
+    </tr>
+    <tr>
+      <td rowspan="3">ResCNN</td>
+      <td>ResCNN</td>
+      <td>0.002</td><td>0.331</td><td>0.005</td>
+      <td>0.071</td><td>0.837</td><td>0.779</td>
+    </tr>
+    <tr>
+      <td>LSTM</td>
+      <td>0.004</td><td>0.105</td><td>0.006</td>
+      <td>0.077</td><td>0.585</td><td>0.826</td>
+    </tr>
+    <tr>
+      <td>PatchTST</td>
+      <td>0.130</td><td>0.726</td><td>0.224</td>
+      <td>0.097</td><td>0.245</td><td>0.104</td>
+    </tr>
+    <tr>
+      <td rowspan="3">PatchTST</td>
+      <td>PatchTST</td>
+      <td>0.084</td><td>0.679</td><td>0.061</td>
+      <td>0.075</td><td>0.380</td><td>0.069</td>
+    </tr>
+    <tr>
+      <td>LSTM</td>
+      <td>0.192</td><td>0.722</td><td>0.078</td>
+      <td>0.539</td><td>0.326</td><td>0.347</td>
+    </tr>
+    <tr>
+      <td>ResCNN</td>
+      <td>0.117</td><td>0.694</td><td>0.090</td>
+      <td>0.284</td><td>0.313</td><td>0.319</td>
+    </tr>
   </tbody>
 </table>
