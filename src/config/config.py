@@ -11,30 +11,11 @@ from src.utils import weights_from_clearml_by_name
 def get_attack(attack_name: str, attack_params: Dict) -> attacks.BaseIterativeAttack:
     if attack_params is None:
         attack_params = dict()
-    
-    # Handle MBA attacks that require attacker models
-    if attack_name in ["MBALSTMAttack", "MBACNNAttack", "MBAPatchTSTAttack", 
-                       "IterativeMBALSTMAttack", "IterativeMBACNNAttack", "IterativeMBAPatchTSTAttack"]:
-        # Check if attacker model parameters are provided
-        if "attacker_model_params" not in attack_params:
-            raise ValueError(f"MBA attack {attack_name} requires attacker_model_params")
-        
-        attacker_params = attack_params["attacker_model_params"]
-        attacker_model = get_attacker_model(
-            attacker_params["name"],
-            attacker_params["params"],
-            device=attack_params.get("model", torch.nn.Module()).device if hasattr(attack_params.get("model", torch.nn.Module()), "device") else "cpu",
-            path=attacker_params.get("path"),
-            train_mode=False
-        )
-        
-        # Add attacker model to attack parameters
-        attack_params["attacker_model"] = attacker_model
-    
     try:
         return getattr(attacks, attack_name)(**attack_params)
     except AttributeError:
         raise ValueError(f"Attack with name {attack_name} is not implemented")
+
 
 
 def get_attacker_model(

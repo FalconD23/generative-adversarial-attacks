@@ -353,180 +353,25 @@ class KLLL2IterativeAttack(ClippedBatchIterativeAttack):
 
         return X_adv_all_objects, y_true_all_objects
 
-# class PGDBatchIterativeAttack:
-#     def __init__(self, estimator: BaseEstimator = None, logger=None, *args, **kwargs) -> None:
-#         self.logging = bool(estimator)
-#         self.estimator = estimator
-#         self.logger = logger
 
-#         if self.logging:
-#             print("logging")
-#             self.metrics_names = self.estimator.get_metrics_names()
-#             self.metrics = pd.DataFrame(columns=self.metrics_names)
+class TrainableBatchIterativeAttack(BatchIterativeAttack):
+    def __init__(
+        self, 
+        gen_model: torch.nn.Module,
+        estimator: BaseEstimator=None,
+        logger=None,
+        n_classes=2,
+        *args,
+        **kwargs
+    ) -> None:
+        super().__init__(
+            estimator=estimator,
+            logger=logger,
+            n_classes=n_classes,
+        )
+        
+        self.is_trainable = True
+        self.gen_model = gen_model
 
-#     def log_step(
-#         self,
-#         y_true: torch.Tensor,
-#         y_pred: torch.Tensor,
-#         y_pred_orig: torch.Tensor,
-#         X_orig: torch.Tensor,
-#         X_adv: torch.Tensor = None,
-#         step_id: int = 0,
-#     ) -> None:
-#         y_true = y_true.flatten().numpy()
-#         y_pred = y_pred.flatten().numpy()
-#         y_pred_orig = y_pred_orig.flatten().numpy()
-#         y_pred_classes = np.round(y_pred)
-#         y_pred_orig_classes = np.round(y_pred_orig)
-
-#         X_orig = X_orig.detach().numpy()
-#         X_adv = X_adv.detach().numpy()
-
-#         metrics_line = self.estimator.estimate(
-#             y_true, y_pred_classes, y_pred_orig_classes, X_orig, X_adv, step_id
-#         )
-
-#         for metric_name, metric_val in zip(self.estimator.metrics_names, metrics_line):
-#             if self.logger:
-#                 self.logger.add_scalar(metric_name, metric_val, step_id)
-
-#         metrics_line = [step_id] + list(metrics_line)
-#         metrics_names = ["step_id"] + self.metrics_names
-#         df_line = pd.DataFrame(metrics_line, index=metrics_names).T
-#         self.metrics = pd.concat([self.metrics, df_line])
-
-#     def get_model_predictions(self, loader: DataLoader) -> torch.Tensor:
-#         y_pred_all_objects = torch.tensor(
-#             []
-#         )
-#         with torch.no_grad():
-#             for X, y_true in loader:
-#                 X, y_true = self.prepare_data_to_attack(X, y_true)
-#                 y_pred = self.model(X)
-#                 y_pred_all_objects = torch.cat(
-#                     (y_pred_all_objects, y_pred.cpu().detach()), dim=0
-#                 )
-#         return y_pred_all_objects
-
-#     def prepare_data_to_attack(
-#         self, X: torch.Tensor, y: torch.Tensor
-#     ) -> Tuple[torch.Tensor]:
-#         X.grad = None
-#         X.requires_grad = True
-
-#         X = X.to(self.device, non_blocking=True)
-#         y = y.to(self.device)
-#         return X, y
-
-#     def run_iteration_log(self, loader: DataLoader, loader_orig: DataLoader) -> Tuple[torch.Tensor]:
-#         X_adv_all_objects = torch.FloatTensor(
-#             []
-#         )  # logging x_adv for rebuilding dataloader
-#         y_true_all_objects = torch.tensor(
-#             []
-#         )  # logging model for rebuilding dataloader and calculation difference with preds
-#         y_pred_all_objects = torch.tensor(
-#             []
-#         )  # logging predictions adversarial if realize_attack or original
-
-#         for (X_orig, _), (X, y_true) in zip(loader_orig, loader):
-#             X_orig = X_orig.to(self.device)
-
-#             X, y_true = self.prepare_data_to_attack(X, y_true)
-#             X_adv = self.step(X, y_true, X_orig)
-#             y_pred_adv = self.model(X_adv)
-
-#             X_adv_all_objects = torch.cat(
-#                 (X_adv_all_objects, X_adv.cpu().detach()), dim=0
-#             )
-#             y_true_all_objects = torch.cat(
-#                 (y_true_all_objects, y_true.cpu().detach()), dim=0
-#             )
-#             y_pred_all_objects = torch.cat(
-#                 (y_pred_all_objects, y_pred_adv.cpu().detach()), dim=0
-#             )
-
-#         return X_adv_all_objects, y_true_all_objects, y_pred_all_objects
-
-#     def run_iteration(self, loader: DataLoader, loader_orig: DataLoader) -> Tuple[torch.Tensor]:
-#         X_adv_all_objects = torch.FloatTensor(
-#             []
-#         )  # logging x_adv for rebuilding dataloader
-#         y_true_all_objects = torch.tensor(
-#             []
-#         )  # logging model for rebuilding dataloader and calculation difference with preds
-
-#         for X_orig, _, X, y_true in zip(loader_orig, loader):
-#             X, y_true = self.prepare_data_to_attack(X, y_true)
-#             X_adv = self.step(X, y_true, X_orig)
-
-#             X_adv_all_objects = torch.cat(
-#                 (X_adv_all_objects, X_adv.cpu().detach()), dim=0
-#             )
-#             y_true_all_objects = torch.cat(
-#                 (y_true_all_objects, y_true.cpu().detach()), dim=0
-#             )
-
-#         return X_adv_all_objects, y_true_all_objects
-
-#     @staticmethod
-#     def rebuild_loader(loader, X_adv: torch.Tensor, y_true: torch.Tensor) -> DataLoader:
-#         dataset_class = loader.dataset.__class__
-#         batch_size = loader.batch_size
-#         dataset = dataset_class(X_adv, y_true)
-#         loader = DataLoader(dataset, batch_size=batch_size)
-#         return loader
-
-#     def get_metrics(self) -> pd.DataFrame:
-#         return self.metrics
-
-#     def apply_attack(self, loader: DataLoader, logger=None) -> torch.Tensor:
-#         y_true = loader.dataset.y
-#         orig_loader = loader
-
-#         if logger:
-#             self.logger = logger
-
-#         if self.logging:
-#             y_pred_orig = self.get_model_predictions(loader)
-#             y_pred_orig = y_pred_orig.cpu().detach()
-#             X_orig = loader.dataset.X.unsqueeze(-1)
-#             self.log_step(
-#                 y_true=y_true,
-#                 y_pred=y_pred_orig,
-#                 y_pred_orig=y_pred_orig,
-#                 X_orig=X_orig,
-#                 X_adv=X_orig,
-#                 step_id=0,
-#             )
-
-#         if self.logging:
-#             y_pred_orig = self.get_model_predictions(loader)
-#             y_pred_orig = y_pred_orig.cpu().detach()
-#             X_orig = loader.dataset.X.unsqueeze(-1)
-#             self.log_step(
-#                 y_true=y_true,
-#                 y_pred=y_pred_orig,
-#                 y_pred_orig=y_pred_orig,
-#                 X_orig=X_orig,
-#                 X_adv=X_orig,
-#                 step_id=0,
-#             )
-
-#         for step_id in tqdm(range(1, self.n_steps + 1)):
-#             if self.logging:
-#                 X_adv, _, y_pred = self.run_iteration_log(loader, orig_loader)
-#                 self.log_step(
-#                     y_true=y_true,
-#                     y_pred=y_pred,
-#                     y_pred_orig=y_pred_orig,
-#                     X_orig=X_orig,
-#                     X_adv=X_adv,
-#                     step_id=step_id,
-#                 )
-#             else:
-#                 X_adv, _ = self.run_iteration(loader, orig_loader)
-
-#             loader = self.rebuild_loader(loader, X_adv, y_true)
-
-#         return X_adv
+    def get_train_noise(self, X):
+        return self.step(X, None, mode='train')

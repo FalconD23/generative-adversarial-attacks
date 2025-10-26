@@ -1,0 +1,39 @@
+name: TrainAttack
+short_name: train_attack
+named_params: [eps]
+is_trainable: True
+
+attack_params:
+  train_eps: 5
+  eps: 0.03
+  n_steps: 50
+  is_clamp: False
+
+batch_size: 64
+
+training_params:
+  criterion_name: BCELoss
+  criterion_params: None
+  optimizer_name: Adam
+  optimizer_params:
+    lr: 0.001
+  scheduler_name: StepLR
+  scheduler_params:
+    step_size: 30
+    gamma: 0.8
+  n_epochs: 200
+  alpha_l2: 0.01
+  early_stop_patience: 1000
+  print_every: 5
+  train_self_supervised: False
+
+
+hyperparameters_vary:
+  eps:
+    optuna_type: float
+    low: 0.01
+    high: 0.5
+    log: True
+  n_steps:
+    optuna_type: const
+    value: 5

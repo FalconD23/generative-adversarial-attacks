@@ -13,7 +13,7 @@ from optuna.trial import Trial
 from torch.utils.data import DataLoader
 from clearml import Task
 
-from src.attacks import BaseIterativeAttack
+from src.attacks import BaseIterativeAttack, TrainableBatchIterativeAttack
 from src.attacks.attack_scheduler import AttackScheduler
 from src.config import (
     get_attack,
@@ -38,20 +38,37 @@ class EarlyStopper:
         self,
         patience: int = 1,
         min_delta: float = 0.0,
+        order: str = 'min'
     ) -> None:
+        
+        if order not in ['max', 'min']:
+            raise ValueError("Earlystopping order should be max or min")
         self.patience = patience
         self.min_delta = min_delta
         self.counter = 0
-        self.min_validation_loss = np.inf
+        self.order = order
+
+        self.start_validation_loss = np.inf if self.order == 'min' else -np.inf
+
+    def compare_loss(self, validation_loss: float, basic_loss: float) -> bool:
+        if self.order == 'min':
+            return validation_loss < basic_loss
+        else:
+            return validation_loss > basic_loss
 
     def early_stop(self, validation_loss: float) -> bool:
-        if validation_loss < self.min_validation_loss:
-            self.min_validation_loss = validation_loss
+
+        basic_delta = self.start_validation_loss + self.min_delta if self.order == 'min' else  self.start_validation_loss - self.min_delta
+
+        if self.compare_loss(validation_loss, self.start_validation_loss):
+            self.start_validation_loss = validation_loss
             self.counter = 0
-        elif validation_loss > (self.min_validation_loss + self.min_delta):
+
+        elif not self.compare_loss(validation_loss, basic_delta):
             self.counter += 1
             if self.counter >= self.patience:
                 return True
+
         return False
 
 
@@ -357,6 +374,220 @@ class Trainer:
         if task:
             task.upload_artifact(name='model_weights', artifact_object=full_path)
         self.save_metrics_as_csv(full_path + "_metrics.csv")
+
+
+class GenAttackTrainer(Trainer):
+    def __init__(
+        self,
+        attack: TrainableBatchIterativeAttack,
+        criterion: torch.nn.Module,
+        optimizer: torch.optim.Optimizer,
+        scheduler: torch.optim.lr_scheduler.LRScheduler,
+        n_epochs: int = 30,
+        alpha_l2: float = 0.001,
+        n_classes = 2,
+        early_stop_patience: int = None,
+        logger: Any = None,
+        print_every: int = 5,
+        device: str = "cpu",
+        multiclass: bool = False,
+        train_self_supervised: bool = False,
+    ) -> None:
+        super().__init__(
+            model=attack.gen_model,
+            criterion=criterion,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            n_epochs=n_epochs,
+            n_classes = n_classes,
+            early_stop_patience=early_stop_patience,
+            logger=logger,
+            print_every=print_every,
+            device=device,
+            multiclass=multiclass,
+            train_self_supervised=train_self_supervised,
+        )
+        
+        self.attack = attack
+        self.alpha_l2 = alpha_l2
+        self.train_attack = attack
+        self.test_attack = copy.deepcopy(attack)
+        self.disc_trainer = False
+
+    @staticmethod
+    def initialize_with_params(
+        attack_name: str = "TrainAttack",
+        attack_params: Dict = None,
+        criterion_name: str = "BCELoss",
+        criterion_params: Dict = None,
+        optimizer_name: str = "Adam",
+        optimizer_params: Dict = None,
+        scheduler_name: str = "None",
+        scheduler_params: Dict = None,
+        n_epochs: int = 30,
+        alpha_l2: float = 0.001,
+        n_classes = 2,
+        early_stop_patience: int = None,
+        logger: Any = None,
+        print_every: int = 5,
+        device: str = "cpu",
+        seed: int = 0,
+        multiclass: bool = False,
+        train_self_supervised: bool = False,
+    ):
+        fix_seed(seed)
+        if criterion_params == "None" or not criterion_params:
+            criterion_params = {}
+        if optimizer_params == "None" or not optimizer_params:
+            optimizer_params = {}
+        if scheduler_params == "None" or not scheduler_params:
+            scheduler_params = {}
+
+        attack = get_attack(attack_name, attack_params)
+        criterion = get_criterion(criterion_name, criterion_params)
+        optimizer = get_optimizer(optimizer_name, attack.gen_model.parameters(), optimizer_params)
+        scheduler = get_scheduler(scheduler_name, optimizer, scheduler_params)
+
+
+        return GenAttackTrainer(
+            attack=attack,
+            criterion=criterion,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            n_epochs=n_epochs,
+            alpha_l2=alpha_l2,
+            n_classes = n_classes,
+            early_stop_patience=early_stop_patience,
+            logger=logger,
+            print_every=print_every,
+            device=device,
+            multiclass=multiclass,
+            train_self_supervised=train_self_supervised,
+        )
+
+    @staticmethod
+    def initialize_with_optimization(
+        train_loader: DataLoader,
+        valid_loader: DataLoader,
+        optuna_params: Dict,
+        const_params: Dict,
+        transform = None,
+    ):
+        study = optuna.create_study(
+            direction="maximize",
+            sampler=instantiate(optuna_params["sampler"]),
+            pruner=instantiate(optuna_params["pruner"]),
+        )
+
+        study.optimize(
+            partial(
+                GenAttackTrainer.objective,
+                params_vary=optuna_params["hyperparameters_vary"],
+                optim_metric=optuna_params["optim_metric"],
+                const_params=const_params,
+                train_loader=train_loader,
+                valid_loader=valid_loader,
+                transform=transform,
+            ),
+            n_trials=optuna_params["n_trials"],
+        )
+
+        default_params = collect_default_params(optuna_params["hyperparameters_vary"])
+        print("DEFAULT", default_params)
+        best_params = study.best_params.copy()
+        print("BEST", best_params)
+        best_params = update_dict_params(default_params, best_params)
+        best_params = update_params_with_attack_params(const_params, best_params)
+        print("Best parameters are - %s", best_params)
+        return GenAttackTrainer.initialize_with_params(**best_params)
+
+    @staticmethod
+    def objective(
+        trial: Trial,
+        params_vary: DictConfig,
+        optim_metric: str,
+        const_params: Dict,
+        train_loader: DataLoader,
+        valid_loader: DataLoader,
+        transform = None
+    ) -> float:
+        initial_model_parameters, _ = get_optimization_dict(params_vary, trial)
+        initial_model_parameters = dict(initial_model_parameters)
+        initial_model_parameters = update_params_with_attack_params(
+            const_params, initial_model_parameters
+        )
+
+        model = GenAttackTrainer.initialize_with_params(**initial_model_parameters)
+        last_epoch_metrics = model.train_model(train_loader, valid_loader, transform)
+        return last_epoch_metrics[optim_metric]
+
+    def _attack_criterion(self, X_adv: torch.Tensor, X: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        delta = X_adv - X
+        logits = self.attack.model(X_adv)
+
+        loss_attack = self.criterion(logits, labels)
+        reg = self.alpha_l2 * (delta ** 2).mean()
+        loss = -(loss_attack - reg)
+
+        return loss, logits
+
+
+    def _train_step(self, X: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor]:
+        self.optimizer.zero_grad()
+
+        X_adv = self.attack.get_train_noise(X)
+
+        if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
+            labels = labels.squeeze(-1).long()
+        
+        loss, logits = self._attack_criterion(X_adv, X, labels)
+
+        loss.backward()
+        self.optimizer.step()
+
+        return -loss, logits
+
+    def _valid_step(self, X: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor]:
+        with torch.no_grad():
+            delta = self.attack.get_train_noise(X)
+            
+            if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
+                labels = labels.squeeze(-1).long()
+            
+            loss, logits = self._attack_criterion(delta, X, labels)
+        return -loss, logits
+    
+    def train_model(
+        self, train_loader: DataLoader, valid_loader: DataLoader
+    ) -> Dict[str, float]:
+        if self.model.self_supervised and self.train_self_supervised:
+            print("Training self-supervised model")
+            X_train = train_loader.dataset.X.unsqueeze(-1).numpy()
+            self.model.train_embedding(X_train, verbose=True)
+            print("Training self-supervised part is finished")
+
+        if self.early_stop_patience and self.early_stop_patience != "None":
+            earl_stopper = EarlyStopper(self.early_stop_patience)
+
+        self._init_logging(["loss"] + self.estimator.get_metrics_names())
+
+        for epoch in range(self.n_epochs):
+            train_metrics_epoch = self._run_epoch(train_loader, mode="train")
+            test_metrics_epoch = self._run_epoch(valid_loader, mode="valid")
+
+            self._logging(train_metrics_epoch, test_metrics_epoch, epoch)
+
+            if self.early_stop_patience and self.early_stop_patience != "None":
+                res_early_stop = earl_stopper.early_stop(test_metrics_epoch[0])
+                if res_early_stop:
+                    break
+
+            if self.scheduler:
+                self.scheduler.step()
+
+        metrics_names = ['loss'] +self.estimator.get_metrics_names()
+        test_metrics_epoch = {name: val for name, val in zip(metrics_names, test_metrics_epoch)}
+        return self.attack
 
 
 class DiscTrainer(Trainer):

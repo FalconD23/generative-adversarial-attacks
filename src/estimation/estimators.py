@@ -98,7 +98,7 @@ class AttackEstimator(BaseEstimator):
         self.batch_size = batch_size
         self.n_classes = n_classes
 
-        self.metrics_names = list(self.metrics.keys()) + ["EFF", "L1", "ACC_CORRECT", "ACC_ORIG_ADV", "ROUGHNESS", "ROUGHNESS_NORM"]
+        self.metrics_names = list(self.metrics.keys()) + ["EFF", "FR", "L1", "ACC_CORRECT", "ACC_ORIG_ADV", "ROUGHNESS", "ROUGHNESS_NORM"]
 
         self.calculate_hid = bool(disc_models)
         if disc_models:
@@ -259,6 +259,7 @@ class AttackEstimator(BaseEstimator):
 
         metrics["L1"] = self.calculate_l1(X_orig, X_adv)
         metrics["ACC_ORIG_ADV"] = accuracy_score(y_pred_orig, y_pred_classes)
+        metrics["FR"] = 1 - metrics["ACC_ORIG_ADV"]
         metrics['ACC_CORRECT'] =  self.accuracy_correct_predicted(y_true, y_pred_classes, y_pred_orig)
         metrics['ROUGHNESS'] = calculate_roughness(X_adv)
         metrics['ROUGHNESS_NORM'] = metrics['ROUGHNESS']/calculate_roughness(X_orig)
@@ -272,3 +273,4 @@ class AttackEstimator(BaseEstimator):
 
         return_order_metrics = [metrics[name] for name in self.metrics_names]
         return return_order_metrics
+    

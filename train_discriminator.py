@@ -150,6 +150,7 @@ def main(cfg: DictConfig):
         )
 
     const_params = {
+            "attack_name":  cfg["attack"]["name"],
             "attack_params": attack_params,
             "print_every": cfg["print_every"],
             "device": device,
@@ -170,8 +171,7 @@ def main(cfg: DictConfig):
                     param,
                     round(getattr(disc_trainer.attack, param), 4)
                 )
-    else: 
-        const_params["attack_name"] = cfg["attack"]["name"]
+    else:
         trainer_params = dict(cfg["training_params"])
         trainer_params.update(const_params)
         disc_trainer = DiscTrainer.initialize_with_params(**trainer_params)

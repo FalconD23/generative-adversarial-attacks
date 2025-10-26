@@ -1,13 +1,8 @@
-from .LSTM import LSTM
-from .ResidualCNN import ResidualCNN
+from .LSTM import LSTM, GenLSTM
+from .ResidualCNN import ResidualCNN, GenResidualCNN
 from .RNNAttention import RNNA
 from .S4 import S4
 from .TS2Vec import TS2VEC
 from .TST import TST
-from .PatchTST import PatchTST
+from .PatchTST import PatchTST, GenPatchTST
 from .Rocket import Rocket
-
-# Surrogate models for MBA attacks
-from .AttackLSTM import AttackLSTM
-from .AttackResidualCNN import AttackResidualCNN
-from .AttackPatchTST import AttackPatchTST

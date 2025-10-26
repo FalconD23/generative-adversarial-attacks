@@ -3,7 +3,6 @@ import warnings
 
 import time
 import hydra
-import pandas as pd
 import torch
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader
@@ -14,6 +13,8 @@ from src.config import get_attack, get_criterion, get_disc_list, get_model
 from src.data import MyDataset, load_data, transform_data
 from src.estimation.estimators import AttackEstimator
 from src.utils import fix_seed, save_attack_metrics, save_config, save_compiled_config,weights_from_clearml_by_name
+# from src.training.train_attacker import train_atk_model
+from src.training.train import GenAttackTrainer
 
 warnings.filterwarnings("ignore")
 
@@ -136,20 +137,6 @@ def main(cfg: DictConfig):
             from_clearml=cfg['load_weights_disc']
         )
 
-    attack = get_attack(cfg["attack"]["name"], attack_params)
-
-    if cfg["enable_optimization"]:
-        attack = attack.initialize_with_optimization(
-            test_loader, cfg["optuna_optimizer"], attack_params
-        )
-
-        if not cfg["test_run"]:
-            attack_add_name = ''
-            for param in cfg['attack']['named_params']:
-                attack_add_name += '__{}={}'.format(
-                    param,
-                    round(getattr(attack, param), 4)
-                )
 
     if not cfg["test_run"]:
         attack_save_name = attack_start_name + attack_add_name
@@ -170,6 +157,65 @@ def main(cfg: DictConfig):
             task = None
 
         logger = SummaryWriter(cfg["save_path"] + "/tensorboard")
+
+    
+    is_learnable = cfg['attack'].get('is_trainable', False)
+
+    if not is_learnable:
+        attack = get_attack(cfg["attack"]["name"], attack_params)
+
+        if cfg["enable_optimization"]:
+            attack = attack.initialize_with_optimization(
+                test_loader, cfg["optuna_optimizer"], attack_params
+            )
+
+            if not cfg["test_run"]:
+                attack_add_name = ''
+                for param in cfg['attack']['named_params']:
+                    attack_add_name += '__{}={}'.format(
+                        param,
+                        round(getattr(attack, param), 4)
+                    )
+    else:
+        gen_model = get_model(
+            cfg["gen_attack_model"]["name"],
+            cfg["gen_attack_model"]["params"],
+            device=device,
+        )
+
+        attack_params['gen_model'] = gen_model
+        training_train_loader = DataLoader(
+            MyDataset(X_train, y_train), batch_size=cfg["attack"]["batch_size"], shuffle=True
+        )
+
+        training_test_loader = DataLoader(
+            MyDataset(X_test, y_test), batch_size=cfg["attack"]["batch_size"], shuffle=False
+        )
+
+        trainer_logger = SummaryWriter(cfg["save_path"] + "/training_tensorboard")
+
+        const_trainer_params = {
+            "attack_name":  cfg["attack"]["name"],
+            "attack_params": attack_params,
+            "logger": trainer_logger,
+            "print_every": cfg["attack"]["training_params"]["print_every"],
+            "device": device,
+            "seed": cfg['model_id_attack'],
+            "train_self_supervised": cfg["attack"]["training_params"]["train_self_supervised"],
+        }
+        if cfg["enable_optimization"]:
+            const_trainer_params['logger'] = None
+            attack_trainer = GenAttackTrainer.initialize_with_optimization(
+                training_train_loader, training_test_loader, cfg["optuna_optimizer"], const_trainer_params
+            )
+        else:
+            trainer_params = dict(cfg["attack"]["training_params"])
+            trainer_params.update(const_trainer_params)
+            attack_trainer = GenAttackTrainer.initialize_with_params(**trainer_params)
+
+        attack = attack_trainer.train_model(training_train_loader, training_test_loader)
+
+        # train_atk_model(attack.attacker, attack_model, train_loader, device=device)
 
     attack.apply_attack(test_loader, logger)
 

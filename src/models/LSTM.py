@@ -46,3 +46,26 @@ class LSTM(BaseModel):
         output = self.relu(self.fc1(hidden))
         output = self.fc2(self.dropout(output))
         return self.final_activation(output)
+    
+
+
+class GenLSTM(BaseModel):
+    def __init__(
+        self,
+        hidden_dim: int = 50,
+        n_layers: int = 1,
+        x_dim: int = 1,
+        dropout: float = 0.2,
+        activation_type: str = "identity",
+    ):
+        super().__init__()
+
+        self.rnn_inp = nn.LSTM(x_dim, hidden_dim, num_layers=n_layers, batch_first=True, dropout=dropout)
+        self.act = Activation(activation_type)
+        self.rnn_out = nn.LSTM(hidden_dim, x_dim, num_layers=n_layers, batch_first=True, dropout=dropout)
+
+    def forward(self, data):
+        x, _ = self.rnn_inp(data)
+        x = self.act(x)
+        x, _ = self.rnn_out(x)
+        return x
