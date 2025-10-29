@@ -2,7 +2,7 @@ name: GenPatchTST
 
 params:
   seq_len: ${dataset.seq_len}
-  c_in: 100
+  c_in: ${dataset.c_in}
 
 hyperparameters_vary:
   dropout:
